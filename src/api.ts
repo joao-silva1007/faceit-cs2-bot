@@ -39,7 +39,15 @@ api.get('/last20/:username', async (req, res) => {
   const username = req.params['username'];
   const playerId = await getPlayerId(username);
   console.log(playerId);
-  const stats = await getLast20GamesCs2Stats(playerId);
+  const stats = await getLast20GamesCs2Stats(playerId, 20);
+  res.status(200).send(stats);
+});
+
+api.get('/lastGame/:username', async (req, res) => {
+  const username = req.params['username'];
+  const playerId = await getPlayerId(username);
+  console.log(playerId);
+  const stats = await getLastGameCs2Stats(playerId);
   res.status(200).send(stats);
 });
 
@@ -59,8 +67,24 @@ async function getCs2PlayerElo(username) {
   return res.data.games['cs2']['faceit_elo'];
 }
 
-async function getLast20GamesCs2Stats(playerId) {
-  const res = await axios.get(`https://open.faceit.com/data/v4/players/${playerId}/games/cs2/stats?offset=0&limit=20`, { headers: defaultHeaders });
+async function getLastGameCs2Stats(playerId) {
+  const res = await axios.get(`https://open.faceit.com/data/v4/players/${playerId}/games/cs2/stats?offset=0&limit=1`, { headers: defaultHeaders });
+  const data: any = {};
+
+  data.kills = Math.round(res.data.items[0].stats['Kills']);
+  data.deaths = Math.round(res.data.items[0].stats['Deaths']);
+  data.assists = Math.round(res.data.items[0].stats['Assists']);
+  data.mvps = Math.round(res.data.items[0].stats['MVPs']);
+  data.headshotPerc = Math.round((parseInt(res.data.items[0].stats['Headshots']) / parseInt(res.data.items[0].stats['Kills'])) * 10000) / 100;
+  data.kdR = Math.round(res.data.items[0].stats['K/D Ratio'] * 100) / 100;
+  data.krR = Math.round(res.data.items[0].stats['K/R Ratio'] * 100) / 100;
+  data.result = res.data.items[0].stats["Result"] == 0 ? "L" : "W";
+
+  return data;
+}
+
+async function getLast20GamesCs2Stats(playerId, numberOfGames) {
+  const res = await axios.get(`https://open.faceit.com/data/v4/players/${playerId}/games/cs2/stats?offset=0&limit=${numberOfGames}`, { headers: defaultHeaders });
   const data = {
     kills: 0,
     deaths: 0,
@@ -80,13 +104,13 @@ async function getLast20GamesCs2Stats(playerId) {
     data.krR += parseFloat(item.stats['K/R Ratio']);
   });
 
-  data.kills = Math.round(data.kills / 20);
-  data.deaths = Math.round(data.deaths / 20);
-  data.assists = Math.round(data.assists / 20);
-  data.mvps = Math.round(data.mvps / 20);
-  data.headshotPerc = Math.round(data.headshotPerc / 20 * 10000) / 100;
-  data.kdR = Math.round(data.kdR / 20 * 100) / 100;
-  data.krR = Math.round(data.krR / 20 * 100) / 100;
+  data.kills = Math.round(data.kills / numberOfGames);
+  data.deaths = Math.round(data.deaths / numberOfGames);
+  data.assists = Math.round(data.assists / numberOfGames);
+  data.mvps = Math.round(data.mvps / numberOfGames);
+  data.headshotPerc = Math.round(data.headshotPerc / numberOfGames * 10000) / 100;
+  data.kdR = Math.round(data.kdR / numberOfGames * 100) / 100;
+  data.krR = Math.round(data.krR / numberOfGames * 100) / 100;
 
   return data;
 }
