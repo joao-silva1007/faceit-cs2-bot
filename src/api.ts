@@ -79,6 +79,7 @@ async function getLastGameCs2Stats(playerId) {
   data.kdR = Math.round(res.data.items[0].stats['K/D Ratio'] * 100) / 100;
   data.krR = Math.round(res.data.items[0].stats['K/R Ratio'] * 100) / 100;
   data.result = res.data.items[0].stats["Result"] == 0 ? "L" : "W";
+  data.matchId = res.data.items[0].stats["Match Id"];
 
   return data;
 }
