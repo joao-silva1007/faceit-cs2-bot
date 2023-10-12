@@ -75,7 +75,7 @@ async function getLastGameCs2Stats(playerId) {
   data.deaths = Math.round(res.data.items[0].stats['Deaths']);
   data.assists = Math.round(res.data.items[0].stats['Assists']);
   data.mvps = Math.round(res.data.items[0].stats['MVPs']);
-  data.headshotPerc = Math.round((parseInt(res.data.items[0].stats['Headshots']) / parseInt(res.data.items[0].stats['Kills'])) * 10000) / 100;
+  data.hsP = Math.round((parseInt(res.data.items[0].stats['Headshots']) / parseInt(res.data.items[0].stats['Kills'])) * 10000) / 100;
   data.kdR = Math.round(res.data.items[0].stats['K/D Ratio'] * 100) / 100;
   data.krR = Math.round(res.data.items[0].stats['K/R Ratio'] * 100) / 100;
   data.result = res.data.items[0].stats["Result"] == 0 ? "L" : "W";
