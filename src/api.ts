@@ -29,6 +29,7 @@ api.get('/hello', (req, res) => {
 });
 
 api.get('/elo/:username', async (req, res) => {
+  console.log(req.rawHeaders);
   const username = req.params['username'];
   const elo = await getCs2PlayerElo(username);
   res.status(200).send({ elo: elo });
@@ -36,6 +37,7 @@ api.get('/elo/:username', async (req, res) => {
 });
 
 api.get('/last20/:username', async (req, res) => {
+  console.log(req.rawHeaders);
   const username = req.params['username'];
   const playerId = await getPlayerId(username);
   console.log(playerId);
@@ -44,6 +46,7 @@ api.get('/last20/:username', async (req, res) => {
 });
 
 api.get('/lastGame/:username', async (req, res) => {
+  console.log(req.rawHeaders);
   const username = req.params['username'];
   const playerId = await getPlayerId(username);
   console.log(playerId);
