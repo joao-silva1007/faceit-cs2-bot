@@ -6,7 +6,7 @@ import axios from 'axios';
 dotenv.config();
 
 const defaultHeaders = {
-  'Authorization': `Bearer ${process.env['FACEIT_API_KEY']}`
+  'Authorization': `Bearer ${process.env.FACEIT_API_KEY}`
 };
 
 export const app = express();
@@ -30,7 +30,7 @@ api.get('/hello', (req, res) => {
 
 api.get('/elo/:username', async (req, res) => {
   console.log(req.rawHeaders);
-  const username = req.params['username'];
+  const username = req.params.username;
   const elo = await getCs2PlayerElo(username);
   res.status(200).send({ elo: elo });
 
@@ -38,7 +38,7 @@ api.get('/elo/:username', async (req, res) => {
 
 api.get('/last20/:username', async (req, res) => {
   console.log(req.rawHeaders);
-  const username = req.params['username'];
+  const username = req.params.username;
   const playerId = await getPlayerId(username);
   console.log(playerId);
   const stats = await getLast20GamesCs2Stats(playerId, 20);
@@ -47,12 +47,17 @@ api.get('/last20/:username', async (req, res) => {
 
 api.get('/lastGame/:username', async (req, res) => {
   console.log(req.rawHeaders);
-  const username = req.params['username'];
+  const username = req.params.username;
   const playerId = await getPlayerId(username);
   console.log(playerId);
   const stats = await getLastGameCs2Stats(playerId);
   res.status(200).send(stats);
 });
+
+api.get("/winsAgostoRui", async (req, res) => {
+  const result = await getGamesHdstr();
+  res.status(200).send(result);
+})
 
 // Version the api
 app.use('/api/v1', api);
@@ -67,11 +72,12 @@ async function getCs2PlayerElo(username) {
   if (res.status >= 300 && res.status < 200) {
     throw Error('uh oh');
   }
-  return res.data.games['cs2']['faceit_elo'];
+  return res.data.games.cs2.faceit_elo;
 }
 
 async function getLastGameCs2Stats(playerId) {
   const res = await axios.get(`https://open.faceit.com/data/v4/players/${playerId}/games/cs2/stats?offset=0&limit=1`, { headers: defaultHeaders });
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const data: any = {};
 
   data.kills = Math.round(res.data.items[0].stats['Kills']);
@@ -137,4 +143,28 @@ async function getCs2Elo(playerId) {
   }
 
   res = res.data.items[0].stats;
+}
+
+async function getGamesHdstr() {
+  let wins = 0;
+  let losses = 0;
+  let games = []
+  let c = 0;
+  do {
+    const res = await axios.get(`https://open.faceit.com/data/v4/players/114af90a-4d19-4a62-85a0-75ba640c021c/history?game=cs2&from=1722466800&limit=100&offset=${100*c}`, { headers: defaultHeaders })
+    games = res.data.items;
+    console.log(games)
+    for (const game of games) {
+      const result = game.results.winner;
+      if (game.teams[result].players.find(player => player.player_id === "114af90a-4d19-4a62-85a0-75ba640c021c")) {
+        wins++;
+      } else {
+        losses++;
+      }
+    }
+    c++
+  } while (games.length !== 0)
+
+  return {wins, losses};
+  
 }
