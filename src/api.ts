@@ -165,6 +165,8 @@ async function getGamesHdstr() {
     c++
   } while (games.length !== 0)
 
-  return {wins, losses};
+  const winRate = Math.round(wins / (wins + losses) * 100)
+
+  return {wins, losses, winRate};
   
 }
