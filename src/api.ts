@@ -77,7 +77,7 @@ app.use('/api/v1', api);
 async function getLocalIdFromIPMA(localName = "Braga") {
   const res = await axios.get("https://api.ipma.pt/public-data/forecast/locations.json");
   const filtered = res.data.filter(obj => obj.local.toLowerCase() === localName.toLowerCase())
-  if (filtered.length === 0) { return null; }
+  if (filtered.length === 0) { return {localId: null, localName: localName}; }
   return {localName: filtered[0].local, localId: filtered[0].globalIdLocal};
 }
 
