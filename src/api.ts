@@ -71,6 +71,16 @@ api.get("/temperatura/:local", async (req, res) => {
   res.status(200).send(await getTemperaturaLocal(localName, localId))
 });
 
+api.get("/media", async (req, res) => {
+  const {wins, losses, winRate} = await getGamesHdstr();
+  const today = new Date();
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const daysLeft = lastDay.getDate() - today.getDate() + 1;
+  const winsLeft = 263 - wins;
+  const winsPerDay = Math.round(winsLeft / daysLeft);
+  res.send("O Rui tem de ganhar " + winsPerDay + " jogos por dia para atingir o objetivo de 263 vitórias em Agosto.");
+})
+
 // Version the api
 app.use('/api/v1', api);
 
