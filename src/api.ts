@@ -77,7 +77,9 @@ api.get("/media", async (req, res) => {
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const daysLeft = lastDay.getDate() - today.getDate() + 1;
   const winsLeft = 263 - wins;
-  const winsPerDay = Math.round(winsLeft / daysLeft);
+  var winsPerDay = winsLeft / daysLeft;
+  // Arrendondar para 2 casas decimais
+  winsPerDay = Math.round(winsPerDay * 100) / 100;
   res.send("O Rui tem de ganhar " + winsPerDay + " jogos por dia para atingir o objetivo de 263 vitórias em Agosto.");
 })
 
