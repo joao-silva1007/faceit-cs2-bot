@@ -61,58 +61,63 @@ api.get("/winsAgostoRui", async (req, res) => {
 })
 
 api.get('/temperatura', async (req, res) => {
-  const dia = new Date();
-  let dataFormatada = dia.toISOString().split('T')[0];
-  dataFormatada += `T${dia.getHours()}:00:00`;
 
-  https.get('https://api.ipma.pt/public-data/forecast/aggregate/1030300.json', (response) => {
-    let data = '';
+});
 
-    // Recebe os dados em chunks
-    response.on('data', (chunk: Buffer) => {
-      data += chunk;
-    });
+api.get("/temperatura/:local", async (req, res) => {
 
-    // Quando toda a resposta é recebida
-    response.on('end', () => {
-      try {
-        const jsonData: any[] = JSON.parse(data);
-        const diaria = jsonData[0];
-        let atual: any | undefined;
-
-        for (const hora of jsonData) {
-          if (hora.dataPrev === dataFormatada) {
-            atual = hora;
-            break;
-          }
-        }
-
-        if (atual) {
-          res.send(
-            `Temperatura atual em Braga: ${atual.tMed}ºC. Previsão máxima para hoje: ${diaria.tMax}ºC. Previsão mínima para hoje: ${diaria.tMin}ºC.`
-          );
-        } else {
-          res.status(200).send('Dados de temperatura não disponíveis para o horário atual.');
-        }
-      } catch (err) {
-        res.send('Erro ao processar dados.');
-      }
-    });
-  }).on('error', (err: Error) => {
-    res.status(404).send('Erro ao buscar dados.');
-  });
+  const {localName, localId} = await getLocalIdFromIPMA(req.params.local);
+  console.log(localId)
+  res.status(200).send(await getTemperaturaLocal(localName, localId))
 });
 
 // Version the api
 app.use('/api/v1', api);
+
+async function getLocalIdFromIPMA(localName = "Braga") {
+  const res = await axios.get("https://api.ipma.pt/public-data/forecast/locations.json");
+  const filtered = res.data.filter(obj => obj.local.toLowerCase() === localName.toLowerCase())
+  if (filtered.length === 0) { return null; }
+  return {localName: filtered[0].local, localId: filtered[0].globalIdLocal};
+}
+
+
+async function getTemperaturaLocal(localName = "Braga", localId = "1030300") {
+  const dia = new Date();
+  let dataFormatada = dia.toISOString().split('T')[0];
+  dataFormatada += `T${dia.getHours()}:00:00`;
+
+  try {
+    const res = await axios.get(`https://api.ipma.pt/public-data/forecast/aggregate/${localId}.json`)
+    const jsonData = res.data;
+
+    const diaria = jsonData[0];
+    let atual: any | undefined;
+
+    for (const hora of jsonData) {
+      if (hora.dataPrev === dataFormatada) {
+        atual = hora;
+        break;
+      }
+    }
+
+    if (atual) {
+      console.log(atual)
+      return `Temperatura atual em ${localName}: ${atual.tMed}ºC. Previsão máxima para hoje: ${diaria.tMax}ºC. Previsão mínima para hoje: ${diaria.tMin}ºC.`;
+    }
+    return 'Dados de temperatura não disponíveis para o horário atual.';
+  } catch (err) {
+    console.log(err)
+    return 'Erro ao processar dados.';
+  }
+
+}
 
 async function getCs2PlayerElo(username) {
   const res = await axios.get('https://open.faceit.com/data/v4/players', {
     params: { nickname: username },
     headers: defaultHeaders
   });
-  console.log(res.status);
-  console.log(res.data);
   if (res.status >= 300 && res.status < 200) {
     throw Error('uh oh');
   }
@@ -195,7 +200,7 @@ async function getGamesHdstr() {
   let games = []
   let c = 0;
   do {
-    const res = await axios.get(`https://open.faceit.com/data/v4/players/114af90a-4d19-4a62-85a0-75ba640c021c/history?game=cs2&from=1722466800&limit=100&offset=${100*c}`, { headers: defaultHeaders })
+    const res = await axios.get(`https://open.faceit.com/data/v4/players/114af90a-4d19-4a62-85a0-75ba640c021c/history?game=cs2&from=1722466800&limit=100&offset=${100 * c}`, { headers: defaultHeaders })
     games = res.data.items;
     console.log(games)
     for (const game of games) {
@@ -211,6 +216,6 @@ async function getGamesHdstr() {
 
   const winRate = Math.round(wins / (wins + losses) * 100)
 
-  return {wins, losses, winRate};
-  
+  return { wins, losses, winRate };
+
 }
