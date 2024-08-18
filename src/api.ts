@@ -60,10 +60,10 @@ api.get("/winsAgostoRui", async (req, res) => {
   res.status(200).send(result);
 })
 
-api.get('/temperatura', (req: Request, res: Response) => {
+api.get('/temperatura', async (req, res) => {
   const dia = new Date();
   let dataFormatada = dia.toISOString().split('T')[0];
-  dataFormatada += 'T' + dia.getHours() + ':00:00';
+  dataFormatada += `T${dia.getHours()}:00:00`;
 
   https.get('https://api.ipma.pt/public-data/forecast/aggregate/1030300.json', (response) => {
     let data = '';
