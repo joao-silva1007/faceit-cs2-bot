@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import axios from 'axios';
+import https from 'https';
 
 dotenv.config();
 
@@ -58,6 +59,49 @@ api.get("/winsAgostoRui", async (req, res) => {
   const result = await getGamesHdstr();
   res.status(200).send(result);
 })
+
+api.get('/temperatura', (req: Request, res: Response) => {
+  const dia = new Date();
+  let dataFormatada = dia.toISOString().split('T')[0];
+  dataFormatada += 'T' + dia.getHours() + ':00:00';
+
+  https.get('https://api.ipma.pt/public-data/forecast/aggregate/1030300.json', (response) => {
+    let data = '';
+
+    // Recebe os dados em chunks
+    response.on('data', (chunk: Buffer) => {
+      data += chunk;
+    });
+
+    // Quando toda a resposta é recebida
+    response.on('end', () => {
+      try {
+        const jsonData: any[] = JSON.parse(data);
+        const diaria = jsonData[0];
+        let atual: any | undefined;
+
+        for (const hora of jsonData) {
+          if (hora.dataPrev === dataFormatada) {
+            atual = hora;
+            break;
+          }
+        }
+
+        if (atual) {
+          res.send(
+            `Temperatura atual em Braga: ${atual.tMed}ºC. Previsão máxima para hoje: ${diaria.tMax}ºC. Previsão mínima para hoje: ${diaria.tMin}ºC.`
+          );
+        } else {
+          res.status(200).send('Dados de temperatura não disponíveis para o horário atual.');
+        }
+      } catch (err) {
+        res.send('Erro ao processar dados.');
+      }
+    });
+  }).on('error', (err: Error) => {
+    res.status(404).send('Erro ao buscar dados.');
+  });
+});
 
 // Version the api
 app.use('/api/v1', api);
