@@ -40,11 +40,6 @@ api.get('/elo/:username', async (req, res) => {
 
 });
 
-api.get("/hours", async (req, res) => {
-  const today = new Date();
-  res.status(200).send(today.toString());
-})
-
 api.get('/last20/:username', async (req, res) => {
   console.log(req.rawHeaders);
   const username = req.params.username;
@@ -127,7 +122,8 @@ async function getAllBeliefs() {
 }
 
 function get_average(wins){
-  const today = new Date();
+  var today = new Date();
+  today.setHours(today.getHours() + 1);
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const daysLeft = lastDay.getDate() - today.getDate() + 1;
   const winsLeft = 263 - wins;
@@ -146,7 +142,8 @@ async function getLocalIdFromIPMA(localName = "Braga") {
 
 
 async function getTemperaturaLocal(localName = "Braga", localId = "1030300") {
-  const dia = new Date();
+  var dia = new Date();
+  dia.setHours(dia.getHours() + 1);
   let dataFormatada = dia.toISOString().split('T')[0];
   dataFormatada += `T${dia.getHours()}:00:00`;
 
