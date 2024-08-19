@@ -40,6 +40,11 @@ api.get('/elo/:username', async (req, res) => {
 
 });
 
+api.get("/hours", async (req, res) => {
+  const today = new Date();
+  res.status(200).send(today.toString());
+})
+
 api.get('/last20/:username', async (req, res) => {
   console.log(req.rawHeaders);
   const username = req.params.username;
