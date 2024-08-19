@@ -2,9 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import axios from 'axios';
-import https from 'https';
+import User, { type IUser } from './model/user';
+import type { Document } from 'mongoose';
 
 dotenv.config();
+
+const users: Array<IUser & Document> = [];
 
 const defaultHeaders = {
   'Authorization': `Bearer ${process.env.FACEIT_API_KEY}`
@@ -71,21 +74,59 @@ api.get("/temperatura/:local", async (req, res) => {
   res.status(200).send(await getTemperaturaLocal(localName, localId))
 });
 
+api.get("/desafio/votos/:user/:acredita", async (req, res) => {
+  try {
+    await saveUserBelief(req.params.user, req.params.acredita);
+    res.status(200).send("Resposta guardada")
+  } catch (e) {
+    console.log(e)
+    if (e instanceof Error) {
+      res.status(200).send(e.message);
+    }
+  }
+})
+
+api.get("/desafio/votos", async (req, res) => {
+  res.status(200).json(await getAllBeliefs());
+});
+
 api.get("/media", async (req, res) => {
   const {wins, losses, winRate} = await getGamesHdstr();
   const winsPerDay = get_average(wins);
-  res.status(200).send("O Rui tem de ganhar " + winsPerDay + " jogos por dia para atingir o objetivo de 263 vitórias em Agosto.");
+  res.status(200).send(`O Rui tem de ganhar ${winsPerDay} jogos por dia para atingir o objetivo de 263 vitórias em Agosto.`);
 })
 
 // Version the api
 app.use('/api/v1', api);
+
+async function saveUserBelief(username: string, believes: string) {
+  if (users.length === 0) {
+    console.log("nunca");
+    users.push(...(await User.find({})));
+  }
+  const foundUser = users.find(user => user.name === username);
+  if (foundUser !== undefined) {
+    throw new Error("Resposta previamente registada.")
+  }
+  const user = new User({ name: username, acredita: believes });
+  const savedUser = await user.save();
+  users.push(savedUser);
+}
+
+async function getAllBeliefs() {
+  if (users.length === 0) {
+    console.log("nunca");
+    users.push(...(await User.find({})));
+  }
+  return users;
+}
 
 function get_average(wins){
   const today = new Date();
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const daysLeft = lastDay.getDate() - today.getDate() + 1;
   const winsLeft = 263 - wins;
-  var winsPerDay = winsLeft / daysLeft;
+  let winsPerDay = winsLeft / daysLeft;
   winsPerDay = Math.round(winsPerDay * 100) / 100;
 
   return winsPerDay;
