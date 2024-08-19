@@ -77,7 +77,7 @@ api.get("/temperatura/:local", async (req, res) => {
 api.get("/desafio/votos/:user/:acredita", async (req, res) => {
   try {
     await saveUserBelief(req.params.user, req.params.acredita);
-    res.status(200).send("Resposta guardada")
+    res.status(200).send(`Resposta guardada ${req.params.user}`)
   } catch (e) {
     console.log(e)
     if (e instanceof Error) {
