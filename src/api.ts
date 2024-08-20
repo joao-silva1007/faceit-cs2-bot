@@ -150,6 +150,7 @@ async function getTemperaturaLocal(localName = "Braga", localId = "1030300") {
   var dia = new Date();
   dia.setHours(dia.getHours() + 1);
   let dataFormatada = dia.toISOString().split('T')[0];
+  console.log(dataFormatada)
   dataFormatada += `T${dia.getHours()}:00:00`;
 
   try {
