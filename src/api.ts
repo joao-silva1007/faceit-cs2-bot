@@ -87,7 +87,12 @@ api.get("/desafio/votos/:user/:acredita", async (req, res) => {
 })
 
 api.get("/desafio/votos", async (req, res) => {
-  res.status(200).json(await getAllBeliefs());
+  const votos = await getAllBeliefs();
+  const result = votos.reduce((acc, elem) => {
+    acc[elem.acredita]++;
+    return acc
+  }, {sim: 0, nao: 0})
+  res.status(200).send(`Resultados atuais: ${result.sim} pessoas acreditam! ${result.nao} pessoas não acreditam :(`);
 });
 
 api.get("/media", async (req, res) => {
