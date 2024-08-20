@@ -147,11 +147,11 @@ async function getLocalIdFromIPMA(localName = "Braga") {
 
 
 async function getTemperaturaLocal(localName = "Braga", localId = "1030300") {
-  var dia = new Date();
+  const dia = new Date();
   dia.setHours(dia.getHours() + 1);
-  let dataFormatada = dia.toISOString().split('T')[0];
-  console.log(dataFormatada)
-  dataFormatada += `T${dia.getHours()}:00:00`;
+  dia.setMinutes(0);
+  dia.setSeconds(0);
+  dia.setMilliseconds(0);
 
   try {
     const res = await axios.get(`https://api.ipma.pt/public-data/forecast/aggregate/${localId}.json`)
@@ -159,9 +159,9 @@ async function getTemperaturaLocal(localName = "Braga", localId = "1030300") {
 
     const diaria = jsonData[0];
     let atual: any | undefined;
-
     for (const hora of jsonData) {
-      if (hora.dataPrev === dataFormatada) {
+      const dataPrev = new Date(hora.dataPrev);
+      if (dataPrev.toISOString() === dia.toISOString()) {
         atual = hora;
         break;
       }
