@@ -101,6 +101,12 @@ api.get("/media", async (req, res) => {
   res.status(200).send(`O Rui tem de ganhar ${winsPerDay} jogos por dia para atingir o objetivo de 263 vitórias em Agosto.`);
 })
 
+api.get("/rui/ladder", async (req, res) => {
+  const resAxios = await axios.get("https://open.faceit.com/data/v4/leaderboards/66aad000a91b46496dcd8807/players/114af90a-4d19-4a62-85a0-75ba640c021c", { headers: defaultHeaders });
+  const data = resAxios.data;
+  res.status(200).send(String(data.position));
+})
+
 // Version the api
 app.use('/api/v1', api);
 
